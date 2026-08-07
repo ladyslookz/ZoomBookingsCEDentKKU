@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบขอใช้งาน Zoom Meeting | CE DENT KKU</title>
+<style>
+  :root{
+    --primary:#2d8cff; --primary-dark:#1a73d1; --danger:#e74c3c; --success:#27ae60; --warning:#f39c12;
+    --bg:#f4f7fb; --card:#ffffff; --text:#243447; --muted:#7c8aa0; --border:#e3e8f0; --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  a{color:var(--primary);}
+  .hidden{display:none !important;}
+  #loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#2d8cff 0%,#1a4fbb 100%);}
+  .login-box{background:var(--card);border-radius:var(--radius);padding:32px 28px;width:100%;max-width:400px;box-shadow:0 15px 40px rgba(0,0,0,0.2);}
+  .login-box h1{text-align:center;font-size:22px;margin-bottom:4px;color:var(--primary-dark);}
+  .login-box p.sub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:20px;}
+  .tab-switch{display:flex;background:#eef2f8;border-radius:8px;margin-bottom:18px;overflow:hidden;}
+  .tab-switch button{flex:1;padding:9px 0;border:none;background:transparent;cursor:pointer;font-weight:600;color:var(--muted);font-size:14px;}
+  .tab-switch button.active{background:var(--primary);color:#fff;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:13px;font-weight:600;margin-bottom:5px;color:var(--text);}
+  .field input, .field select, .field textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;outline:none;transition:.2s;background:#fff;font-family:inherit;}
+  .field input:focus, .field select:focus, .field textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(45,140,255,0.15);}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 16px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:600;transition:.2s;}
+  .btn:disabled{opacity:.6;cursor:not-allowed;}
+  .btn-primary{background:var(--primary);color:#fff;}
+  .btn-primary:hover{background:var(--primary-dark);}
+  .btn-full{width:100%;}
+  .btn-success{background:var(--success);color:#fff;}
+  .btn-danger{background:var(--danger);color:#fff;}
+  .btn-warning{background:var(--warning);color:#fff;}
+  .btn-outline{background:#fff;border:1px solid var(--border);color:var(--text);}
+  .btn-sm{padding:6px 10px;font-size:12px;}
+  .hint-box{margin-top:16px;background:#f0f6ff;border:1px solid #cfe4ff;border-radius:8px;padding:10px 12px;font-size:12px;color:#365a8c;line-height:1.6;}
+  .error-text{color:var(--danger);font-size:13px;margin-top:8px;text-align:center;min-height:16px;}
+  #appScreen{min-height:100vh;}
+  header.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20;flex-wrap:wrap;gap:10px;}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--primary-dark);}
+  .brand-logo{width:36px;height:36px;border-radius:10px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;}
+  .user-info{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .badge-role{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+  .badge-role.admin{background:#fdeef0;color:#c0392b;}
+  .badge-role.user{background:#e8f6ff;color:#1a73d1;}
+  .live-dot{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--success);font-weight:700;}
+  .live-dot::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulse 1.5s infinite;}
+  @keyframes pulse{0%{opacity:1;}50%{opacity:.3;}100%{opacity:1;}}
+  main.container{max-width:1200px;margin:0 auto;padding:24px;}
+  .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:20px;margin-bottom:22px;box-shadow:0 4px 14px rgba(20,40,80,0.04);}
+  .card h2{margin:0 0 16px;font-size:18px;color:var(--text);display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap;}
+  .card h3{margin:0 0 10px;font-size:14px;color:var(--text);}
+  .grid-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;}
+  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:22px;}
+  .stat-card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:16px;text-align:center;}
+  .stat-card .num{font-size:26px;font-weight:800;}
+  .stat-card .lbl{font-size:12px;color:var(--muted);margin-top:2px;}
+  .stat-pending .num{color:var(--warning);}
+  .stat-approved .num{color:var(--success);}
+  .stat-rejected .num{color:var(--danger);}
+  .stat-total .num{color:var(--primary);}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
+  .toolbar input[type=text], .toolbar input[type=email], .toolbar input[type=password]{flex:1;min-width:160px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;}
+  .filter-btns{display:flex;gap:6px;flex-wrap:wrap;}
+  .filter-btns button{padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:#fff;font-size:12px;cursor:pointer;font-weight:600;color:var(--muted);}
+  .filter-btns button.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  .table-wrap{overflow-x:auto;}
+  th,td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--border);}
+  th{color:var(--muted);font-size:11px;text-transform:uppercase;white-space:nowrap;}
+  td{max-width:260px;}
+  tr:hover td{background:#fafcff;}
+  .status-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;display:inline-block;white-space:nowrap;}
+  .status-รอตรวจสอบ{background:#fff6e0;color:#b8860b;}
+  .status-อนุมัติ{background:#e6f7ec;color:var(--success);}
+  .status-ไม่อนุมัติ{background:#fde9e8;color:var(--danger);}
+  .action-btns{display:flex;gap:5px;flex-wrap:wrap;}
+  .booking-cards-mobile{display:none;}
+  .slot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;}
+  .slot-cell{border-radius:8px;padding:8px 6px;text-align:center;font-size:12px;font-weight:700;border:1px solid var(--border);}
+  .slot-cell.free{background:#e9fbf0;color:var(--success);border-color:#bdeccf;}
+  .slot-cell.busy{background:#fdeceb;color:var(--danger);border-color:#f6c9c5;cursor:help;}
+  .slot-cell .time{display:block;font-size:11px;font-weight:800;}
+  .slot-cell .lbl{display:block;font-size:10px;margin-top:2px;opacity:.85;}
+  .modal-overlay{position:fixed;inset:0;background:rgba(10,20,40,0.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;}
+  .modal-box{background:#fff;border-radius:var(--radius);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;padding:24px;}
+  .modal-box h3{margin-top:0;color:var(--primary-dark);}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
+  #toastContainer{position:fixed;top:16px;right:16px;z-index:200;display:flex;flex-direction:column;gap:8px;max-width:90vw;}
+  .toast{padding:12px 16px;border-radius:8px;color:#fff;font-size:13px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,0.15);animation:slideIn .3s ease;max-width:300px;}
+  .toast.success{background:var(--success);}
+  .toast.error{background:var(--danger);}
+  .toast.info{background:var(--primary);}
+  @keyframes slideIn{from{transform:translateX(60px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+  .empty-state{text-align:center;color:var(--muted);padding:24px;font-size:13px;}
+  .note-text{white-space:pre-wrap;word-break:break-word;font-size:12px;}
+  .note-link{word-break:break-all;font-size:12px;display:inline-block;max-width:100%;}
+  .dept-stats{display:flex;flex-direction:column;gap:8px;}
+  .dept-row{display:grid;grid-template-columns:120px 1fr 40px;align-items:center;gap:10px;font-size:12px;}
+  .dept-label{color:var(--text);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .dept-bar-wrap{background:#eef2f8;border-radius:6px;height:14px;overflow:hidden;}
+  .dept-bar{background:var(--primary);height:100%;border-radius:6px;transition:width .3s;}
+  .dept-count{text-align:right;font-weight:700;color:var(--primary-dark);}
+  .test-email-result{font-size:12px;margin-top:6px;min-height:16px;}
+  @media (max-width:720px){
+    table thead{display:none;}
+    .table-wrap{display:none;}
+    .booking-cards-mobile{display:block;}
+    .b-card{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;}
+    .b-card .row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;gap:8px;}
+    .b-card .row span.lbl{color:var(--muted);white-space:nowrap;}
+    .b-card .actions{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;}
+    .dept-row{grid-template-columns:90px 1fr 30px;}
+  }
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-box">
+    <h1>📅 ระบบขอใช้งาน <br> Zoom Meeting CE Dent KKU</h1>
+    <p class="sub">Zoom Meeting Booking System <br> งานวิจัย บัณฑิตศึกษา และวิเทศสัมพันธ์ Tel: 45123</p>
+    <div class="tab-switch">
+      <button id="tabUserBtn" class="active" type="button">👤 ผู้ใช้ทั่วไป</button>
+      <button id="tabAdminBtn" type="button">🔐 แอดมิน</button>
+    </div>
+    <form id="userLoginForm">
+      <div class="field"><label>ชื่อ-นามสกุล</label><input type="text" id="loginName" required placeholder="เช่น สมชาย ใจดี"></div>
+      <div class="field"><label>อีเมล (ใช้อีเมลอะไรก็ได้)</label><input type="email" id="loginEmail" required placeholder="you@example.com"></div>
+      <div class="field"><label>เบอร์โทร (ไม่บังคับ)</label><input type="text" id="loginPhone" placeholder="08x-xxx-xxxx"></div>
+      <button type="submit" class="btn btn-primary btn-full">เข้าสู่ระบบ</button>
+      <div class="error-text" id="userLoginError"></div>
+    </form>
+    <form id="adminLoginForm" class="hidden">
+      <div class="field"><label>อีเมลแอดมิน</label><input type="email" id="adminEmail" required placeholder="admin@example.com"></div>
+      <div class="field"><label>รหัสผ่าน</label><input type="password" id="adminPassword" required></div>
+      <button type="submit" class="btn btn-primary btn-full">เข้าสู่ระบบแอดมิน</button>
+      <div class="error-text" id="adminLoginError"></div>
+    </form>
+    <div class="hint-box" id="connStatus">🔄 กำลังตรวจสอบการเชื่อมต่อกับระบบ...</div>
+  </div>
+</div>
+
+<div id="appScreen" class="hidden">
+  <header class="topbar">
+    <div class="brand"><div class="brand-logo">Z</div>ระบบจองประชุม Zoom</div>
+    <div class="user-info">
+      <span class="live-dot">LIVE</span>
+      <span id="curUserName"></span>
+      <span id="curUserRole" class="badge-role"></span>
+      <button class="btn btn-outline btn-sm" id="logoutBtn">ออกจากระบบ</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="userPanel" class="hidden">
+      <div class="card">
+        <h2>🗓️ ตารางว่าง/ไม่ว่าง<input type="date" id="slotDate" style="max-width:180px"></h2>
+        <div class="slot-grid" id="slotGrid"></div>
+      </div>
+      <div class="card">
+        <h2>➕ จองประชุม Zoom ใหม่</h2>
+        <form id="bookingForm">
+          <div class="grid-form">
+            <div class="field"><label>หัวข้อการประชุม</label><input type="text" id="bTopic" required></div>
+            <div class="field"><label>หน่วยงาน/สังกัด</label><input type="text" id="bDept" required placeholder="เช่น ฝ่ายขาย"></div>
+            <div class="field"><label>วันที่ประชุม</label><input type="date" id="bDate" required></div>
+            <div class="field"><label>เวลาเริ่ม</label><input type="time" id="bStart" required></div>
+            <div class="field"><label>เวลาสิ้นสุด</label><input type="time" id="bEnd" required></div>
+          </div>
+          <button type="submit" class="btn btn-primary" id="submitBookingBtn">ส่งคำขอจอง</button>
+          <div class="error-text" id="bookingError"></div>
+        </form>
+      </div>
+      <div class="card">
+        <h2>📋 รายการจองของฉัน</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>หัวข้อ</th><th>หน่วยงาน</th><th>วันที่</th><th>เวลา</th><th>สถานะ</th><th>Zoom Link / หมายเหตุ</th></tr></thead>
+            <tbody id="myBookingsBody"></tbody>
+          </table>
+        </div>
+        <div id="myBookingsCards" class="booking-cards-mobile"></div>
+        <div id="myBookingsEmpty" class="empty-state hidden">ยังไม่มีรายการจอง</div>
+      </div>
+    </div>
+
+    <div id="adminPanel" class="hidden">
+      <div class="stats-row">
+        <div class="stat-card stat-total"><div class="num" id="statTotal">0</div><div class="lbl">ทั้งหมด</div></div>
+        <div class="stat-card stat-pending"><div class="num" id="statPending">0</div><div class="lbl">รออนุมัติ</div></div>
+        <div class="stat-card stat-approved"><div class="num" id="statApproved">0</div><div class="lbl">อนุมัติแล้ว</div></div>
+        <div class="stat-card stat-rejected"><div class="num" id="statRejected">0</div><div class="lbl">ไม่อนุมัติ</div></div>
+      </div>
+
+      <div class="card">
+        <h2>📊 สถิติตามหน่วยงาน (Top 10)</h2>
+        <div class="dept-stats" id="deptStats"></div>
+      </div>
+
+      <div class="card">
+        <h2>🛠️ จัดการการจองประชุม (Admin)
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-success btn-sm" id="exportBtn">📊 Export Excel</button>
+            <button class="btn btn-primary btn-sm" id="addBookingBtn">+ เพิ่มการจอง</button>
+          </div>
+        </h2>
+        <div class="toolbar">
+          <input type="text" id="searchInput" placeholder="ค้นหาชื่อ/หัวข้อ/หน่วยงาน...">
+          <div class="filter-btns" id="filterBtns">
+            <button data-f="All" class="active">ทั้งหมด</button>
+            <button data-f="รอตรวจสอบ">รออนุมัติ</button>
+            <button data-f="อนุมัติ">อนุมัติ</button>
+            <button data-f="ไม่อนุมัติ">ไม่อนุมัติ</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ผู้จอง</th><th>อีเมล</th><th>หน่วยงาน</th><th>หัวข้อ</th><th>วันที่</th><th>เวลา</th><th>สถานะ</th><th>หมายเหตุ/ลิงก์</th><th>จัดการ</th></tr></thead>
+            <tbody id="adminBookingsBody"></tbody>
+          </table>
+        </div>
+        <div id="adminBookingsCards" class="booking-cards-mobile"></div>
+        <div id="adminBookingsEmpty" class="empty-state hidden">ไม่พบข้อมูลการจอง</div>
+      </div>
+
+      <div class="card hidden" id="adminManageSection">
+        <h2>👥 จัดการสิทธิ์แอดมิน (เฉพาะผู้จัดการ)</h2>
+        <div class="toolbar">
+          <input type="email" id="newAdminEmail" placeholder="อีเมลแอดมินใหม่">
+          <input type="password" id="newAdminPassword" placeholder="รหัสผ่าน" style="max-width:160px">
+          <select id="newAdminRole" style="max-width:160px">
+            <option value="ผู้ดูแล">ผู้ดูแล</option>
+            <option value="ผู้จัดการ">ผู้จัดการ</option>
+          </select>
+          <button class="btn btn-success" id="addAdminBtn">➕ เพิ่มแอดมิน</button>
+        </div>
+        <div class="table-wrap">
+          <table><thead><tr><th>อีเมล</th><th>สิทธิ์</th><th>จัดการ</th></tr></thead><tbody id="adminListBody"></tbody></table>
+        </div>
+      </div>
+
+      <!-- ✅ กล่องทดสอบระบบส่งอีเมล: อยู่ใน adminPanel ถูกต้อง แสดงเฉพาะแอดมิน -->
+      <div class="card">
+        <h2>📧 ทดสอบระบบส่งอีเมล</h2>
+        <div class="toolbar">
+          <input type="email" id="testEmailInput" placeholder="กรอกอีเมลที่ต้องการทดสอบส่ง">
+          <button class="btn btn-primary btn-sm" id="testEmailBtn">ส่งอีเมลทดสอบ</button>
+        </div>
+        <div class="test-email-result" id="testEmailResult"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toastContainer"></div>
+
+<script>
+(function(){
+  'use strict';
+//⚠️ api_url
+  const API_URL = 'https://script.google.com/macros/s/AKfycbwl8-N2sZNo1UsSV6LvbfhyE2ocWSgZgVaIB9GK6Rcvlyh5bRo-gpcQa60rfnEdolmm/exec';
+
+  const state = { role:null, name:'', email:'', phone:'', adminRole:null, bookings:[], filter:'All', search:'', pollTimer:null };
+
+  function $(sel){ return document.querySelector(sel); }
+  function $all(sel){ return document.querySelectorAll(sel); }
+  function escapeHtml(str){ const d=document.createElement('div'); d.textContent = str==null?'':String(str); return d.innerHTML; }
+  function toMinutes(t){ const p=String(t).split(':'); return parseInt(p[0],10)*60+parseInt(p[1],10); }
+  function normalizeDate(d){ if(!d) return ''; const s=String(d); return s.includes('T')?s.split('T')[0]:s; }
+
+  function showToast(msg, type){
+    type = type || 'info';
+    const t = document.createElement('div');
+    t.className = 'toast ' + type;
+    t.textContent = msg;
+    $('#toastContainer').appendChild(t);
+    setTimeout(function(){ t.remove(); }, 4000);
+  }
+
+  function statusBadge(status){
+    const map = { 'รอตรวจสอบ':'รออนุมัติ', 'อนุมัติ':'อนุมัติแล้ว', 'ไม่อนุมัติ':'ไม่อนุมัติ' };
+    return '<span class="status-badge status-' + status + '">' + (map[status] || status) + '</span>';
+  }
+
+  function renderNoteCell(reason){
+    if(!reason) return '-';
+    const trimmed = String(reason).trim();
+    const isUrl = /^https?:\/\//i.test(trimmed);
+    if(isUrl){
+      return '<a class="note-link" href="' + escapeHtml(trimmed) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(trimmed) + '</a>';
+    }
+    return '<span class="note-text">' + escapeHtml(trimmed) + '</span>';
+  }
+
+  function checkPlaceholderConfig(){
+    const issues = [];
+    if(API_URL.indexOf('AKfycbxxxx') !== -1 || API_URL.indexOf('YOUR_DEPLOYMENT') !== -1){
+      issues.push('API_URL ยังเป็นค่าตัวอย่าง กรุณาแก้เป็น Web App URL จริงจาก Apps Script Deploy');
+    }
+    if(API_URL.indexOf('https://script.google.com/macros/s/') !== 0 || API_URL.indexOf('/exec') === -1){
+      issues.push('รูปแบบ API_URL ไม่ถูกต้อง ต้องขึ้นต้นด้วย https://script.google.com/macros/s/ และลงท้ายด้วย /exec');
+    }
+    if(issues.length > 0){
+      const box = $('#connStatus');
+      box.innerHTML = '⚠️ <b>พบปัญหาการตั้งค่า:</b><br>' + issues.map(function(i){ return '• ' + i; }).join('<br>');
+      box.style.background = '#fff3cd'; box.style.borderColor = '#ffe08a'; box.style.color = '#8a6100';
+      return false;
+    }
+    return true;
+  }
+
+  async function api(action, payload, method){
+    method = method || 'POST';
+    try{
+      let res;
+      if(method === 'GET'){
+        const params = new URLSearchParams(Object.assign({ action: action }, payload));
+        res = await fetch(API_URL + '?' + params.toString());
+      } else {
+        res = await fetch(API_URL, {
+          method:'POST',
+          headers:{'Content-Type':'text/plain;charset=utf-8'},
+          body: JSON.stringify(Object.assign({ action: action }, payload))
+        });
+      }
+      const text = await res.text();
+      let json;
+      try{ json = JSON.parse(text); }
+      catch(e){
+        showToast('❌ Server ตอบกลับไม่ถูกต้อง (ไม่ใช่ JSON)', 'error');
+        return { success:false, message:'Invalid response: ' + text.substring(0,200) };
+      }
+      if(json.error){
+        showToast('❌ ' + json.error, 'error');
+        return { success:false, message: json.error };
+      }
+      return json;
+    }catch(err){
+      showToast('❌ เชื่อมต่อ Server ไม่ได้: ' + err.message, 'error');
+      return { success:false, message: err.message };
+    }
+  }
+
+  async function checkConnection(){
+    if(!checkPlaceholderConfig()) return;
+    const r = await api('ping', {}, 'GET');
+    const box = $('#connStatus');
+    if(r && r.ok){
+      box.textContent = '✅ เชื่อมต่อระบบสำเร็จ (v' + (r.version||'?') + ')';
+      box.style.background = '#e9fbf0'; box.style.borderColor = '#bdeccf'; box.style.color = '#1e7e42';
+    } else {
+      box.innerHTML = '⚠️ เชื่อมต่อ Server ไม่สำเร็จ<br><small>' + escapeHtml(r.message || 'Unknown error') + '</small>';
+      box.style.background = '#fdeceb'; box.style.borderColor = '#f6c9c5'; box.style.color = '#c0392b';
+    }
+  }
+
+  $('#tabUserBtn').addEventListener('click', function(){
+    $('#tabUserBtn').classList.add('active'); $('#tabAdminBtn').classList.remove('active');
+    $('#userLoginForm').classList.remove('hidden'); $('#adminLoginForm').classList.add('hidden');
+  });
+  $('#tabAdminBtn').addEventListener('click', function(){
+    $('#tabAdminBtn').classList.add('active'); $('#tabUserBtn').classList.remove('active');
+    $('#adminLoginForm').classList.remove('hidden'); $('#userLoginForm').classList.add('hidden');
+  });
+
+  $('#userLoginForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const name = $('#loginName').value.trim();
+    const email = $('#loginEmail').value.trim();
+    const phone = $('#loginPhone').value.trim();
+    if(!/^\S+@\S+\.\S+$/.test(email)){ $('#userLoginError').textContent = 'รูปแบบอีเมลไม่ถูกต้อง'; return; }
+    $('#userLoginError').textContent = '';
+    state.role = 'user'; state.name = name; state.email = email; state.phone = phone;
+    enterApp();
+    showToast('เข้าสู่ระบบสำเร็จ ยินดีต้อนรับ ' + name, 'success');
+  });
+
+  $('#adminLoginForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    const email = $('#adminEmail').value.trim();
+    const password = $('#adminPassword').value;
+    const btn = this.querySelector('button[type=submit]');
+    btn.disabled = true; btn.textContent = 'กำลังตรวจสอบ...';
+    const result = await api('adminLogin', { email: email, password: password });
+    btn.disabled = false; btn.textContent = 'เข้าสู่ระบบแอดมิน';
+    if(result.success){
+      $('#adminLoginError').textContent = '';
+      state.role = 'admin'; state.email = email; state.adminRole = result.role;
+      enterApp();
+      showToast('เข้าสู่ระบบแอดมินสำเร็จ', 'success');
+    } else {
+      $('#adminLoginError').textContent = result.message || 'เข้าสู่ระบบไม่สำเร็จ';
+    }
+  });
+
+  $('#logoutBtn').addEventListener('click', function(){
+    clearInterval(state.pollTimer);
+    state.role = null; state.name=''; state.email=''; state.adminRole=null;
+    $('#appScreen').classList.add('hidden'); $('#loginScreen').classList.remove('hidden');
+    $('#userLoginForm').reset(); $('#adminLoginForm').reset();
+  });
+
+  function enterApp(){
+    $('#loginScreen').classList.add('hidden'); $('#appScreen').classList.remove('hidden');
+    $('#curUserName').textContent = state.role === 'admin' ? state.email : (state.name + ' (' + state.email + ')');
+    const roleBadge = $('#curUserRole');
+    if(state.role === 'admin'){
+      roleBadge.textContent = state.adminRole; roleBadge.className = 'badge-role admin';
+      $('#adminPanel').classList.remove('hidden'); $('#userPanel').classList.add('hidden');
+      $('#adminManageSection').classList.toggle('hidden', state.adminRole !== 'ผู้จัดการ');
+      if(state.adminRole === 'ผู้จัดการ') loadAdminList();
+    } else {
+      roleBadge.textContent = 'ผู้ใช้งาน'; roleBadge.className = 'badge-role user';
+      $('#userPanel').classList.remove('hidden'); $('#adminPanel').classList.add('hidden');
+      const today = new Date().toISOString().split('T')[0];
+      $('#slotDate').value = today; $('#bDate').value = today; $('#bDate').setAttribute('min', today);
+    }
+    loadBookings();
+    clearInterval(state.pollTimer);
+    state.pollTimer = setInterval(loadBookings, 5000);
+  }
+
+  async function loadBookings(){
+    const result = await api('list', {}, 'GET');
+    if(Array.isArray(result)){
+      state.bookings = result;
+      if(state.role === 'user'){ renderSlotGrid(); renderMyBookings(); }
+      if(state.role === 'admin'){ renderAdminBookings(); }
+    }
+  }
+
+  function generateSlots(){
+    const slots = [];
+    for(let m = 8*60; m < 18*60; m += 30){
+      const h = String(Math.floor(m/60)).padStart(2,'0');
+      const mm = String(m%60).padStart(2,'0');
+      slots.push(h + ':' + mm);
+    }
+    return slots;
+  }
+
+  function renderSlotGrid(){
+    const date = $('#slotDate').value;
+    const grid = $('#slotGrid');
+    const times = generateSlots();
+    const dayBookings = state.bookings.filter(function(b){
+      return normalizeDate(b.Date) === date && (b.Status === 'รอตรวจสอบ' || b.Status === 'อนุมัติ');
+    });
+    grid.innerHTML = times.map(function(t, idx){
+      const nextT = times[idx+1] || '18:00';
+      const startM = toMinutes(t), endM = toMinutes(nextT);
+      const busy = dayBookings.find(function(b){ return startM < toMinutes(b.EndTime) && endM > toMinutes(b.StartTime); });
+      if(busy){
+        return '<div class="slot-cell busy" title="' + escapeHtml(busy.Topic) + '"><span class="time">' + t + '</span><span class="lbl">⛔ ไม่ว่าง</span></div>';
+      }
+      return '<div class="slot-cell free"><span class="time">' + t + '</span><span class="lbl">✅ ว่าง</span></div>';
+    }).join('');
+  }
+  $('#slotDate').addEventListener('change', renderSlotGrid);
+
+  $('#bookingForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    const topic = $('#bTopic').value.trim();
+    const dept = $('#bDept').value.trim();
+    const date = $('#bDate').value;
+    const start = $('#bStart').value;
+    const end = $('#bEnd').value;
+    const errEl = $('#bookingError');
+    const btn = $('#submitBookingBtn');
+    if(toMinutes(start) >= toMinutes(end)){ errEl.textContent = 'เวลาสิ้นสุดต้องมากกว่าเวลาเริ่ม'; return; }
+    errEl.textContent = '';
+    btn.disabled = true; btn.textContent = 'กำลังส่งคำขอ...';
+    const result = await api('create', { name: state.name, email: state.email, phone: state.phone, department: dept, topic: topic, date: date, startTime: start, endTime: end });
+    btn.disabled = false; btn.textContent = 'ส่งคำขอจอง';
+    if(result.success){
+      showToast(result.message, 'success');
+      this.reset(); $('#bDate').value = date;
+      loadBookings();
+    } else {
+      errEl.textContent = result.message;
+      showToast(result.message, 'error');
+    }
+  });
+
+  function renderMyBookings(){
+    const list = state.bookings.filter(function(b){ return String(b.Email).toLowerCase() === state.email.toLowerCase(); })
+      .sort(function(a,b){ return String(b.CreatedAt).localeCompare(String(a.CreatedAt)); });
+    const body = $('#myBookingsBody'); const cards = $('#myBookingsCards'); const empty = $('#myBookingsEmpty');
+    body.innerHTML = ''; cards.innerHTML = '';
+    empty.classList.toggle('hidden', list.length > 0);
+    list.forEach(function(b){
+      const noteCell = renderNoteCell(b.Reason);
+      body.insertAdjacentHTML('beforeend', '<tr><td>' + escapeHtml(b.Topic) + '</td><td>' + escapeHtml(b.Department||'-') + '</td><td>' + normalizeDate(b.Date) + '</td><td>' + escapeHtml(b.StartTime) + ' - ' + escapeHtml(b.EndTime) + '</td><td>' + statusBadge(b.Status) + '</td><td>' + noteCell + '</td></tr>');
+      cards.insertAdjacentHTML('beforeend', '<div class="b-card"><div class="row"><span class="lbl">หัวข้อ</span><span>' + escapeHtml(b.Topic) + '</span></div><div class="row"><span class="lbl">หน่วยงาน</span><span>' + escapeHtml(b.Department||'-') + '</span></div><div class="row"><span class="lbl">วันที่</span><span>' + normalizeDate(b.Date) + '</span></div><div class="row"><span class="lbl">เวลา</span><span>' + escapeHtml(b.StartTime) + '-' + escapeHtml(b.EndTime) + '</span></div><div class="row"><span class="lbl">สถานะ</span><span>' + statusBadge(b.Status) + '</span></div><div class="row"><span class="lbl">หมายเหตุ</span><span>' + noteCell + '</span></div></div>');
+    });
+  }
+
+  function getFilteredBookings(){
+    return state.bookings.filter(function(b){
+      const matchFilter = state.filter === 'All' || b.Status === state.filter;
+      const q = state.search.toLowerCase();
+      const matchSearch = !q ||
+        String(b.Topic).toLowerCase().indexOf(q) !== -1 ||
+        String(b.Name).toLowerCase().indexOf(q) !== -1 ||
+        String(b.Department||'').toLowerCase().indexOf(q) !== -1;
+      return matchFilter && matchSearch;
+    }).sort(function(a,b){ return String(b.CreatedAt).localeCompare(String(a.CreatedAt)); });
+  }
+
+  function renderStats(){
+    $('#statTotal').textContent = state.bookings.length;
+    $('#statPending').textContent = state.bookings.filter(function(b){ return b.Status==='รอตรวจสอบ'; }).length;
+    $('#statApproved').textContent = state.bookings.filter(function(b){ return b.Status==='อนุมัติ'; }).length;
+    $('#statRejected').textContent = state.bookings.filter(function(b){ return b.Status==='ไม่อนุมัติ'; }).length;
+  }
+
+  function renderDeptStats(){
+    const deptMap = {};
+    state.bookings.forEach(function(b){
+      const d = b.Department || 'ไม่ระบุ';
+      deptMap[d] = (deptMap[d] || 0) + 1;
+    });
+    const entries = Object.keys(deptMap).map(function(k){ return [k, deptMap[k]]; })
+      .sort(function(a,b){ return b[1]-a[1]; }).slice(0, 10);
+    const max = entries.length ? entries[0][1] : 1;
+    const container = $('#deptStats');
+    if(entries.length === 0){
+      container.innerHTML = '<div class="empty-state">ยังไม่มีข้อมูล</div>';
+      return;
+    }
+    container.innerHTML = entries.map(function(e){
+      const pct = Math.round(e[1] / max * 100);
+      return '<div class="dept-row"><div class="dept-label" title="' + escapeHtml(e[0]) + '">' + escapeHtml(e[0]) + '</div><div class="dept-bar-wrap"><div class="dept-bar" style="width:' + pct + '%"></div></div><div class="dept-count">' + e[1] + '</div></div>';
+    }).join('');
+  }
+
+  function renderAdminBookings(){
+    const list = getFilteredBookings();
+    const body = $('#adminBookingsBody'); const cards = $('#adminBookingsCards'); const empty = $('#adminBookingsEmpty');
+    body.innerHTML = ''; cards.innerHTML = '';
+    empty.classList.toggle('hidden', list.length > 0);
+    const canManage = state.adminRole === 'ผู้จัดการ';
+    list.forEach(function(b){
+      const noteCell = renderNoteCell(b.Reason);
+      let actions = '<span style="color:#94a3b8;font-size:12px">อ่านอย่างเดียว</span>';
+      if(canManage){
+        actions = (b.Status !== 'อนุมัติ' ? '<button class="btn btn-success btn-sm" data-action="approve" data-id="' + b.BookingID + '">อนุมัติ</button>' : '') +
+          (b.Status !== 'ไม่อนุมัติ' ? '<button class="btn btn-danger btn-sm" data-action="reject" data-id="' + b.BookingID + '">ปฏิเสธ</button>' : '') +
+          '<button class="btn btn-outline btn-sm" data-action="edit" data-id="' + b.BookingID + '">แก้ไข</button>' +
+          '<button class="btn btn-warning btn-sm" data-action="delete" data-id="' + b.BookingID + '">ลบ</button>';
+      }
+      body.insertAdjacentHTML('beforeend', '<tr><td>' + escapeHtml(b.Name) + '</td><td>' + escapeHtml(b.Email) + '</td><td>' + escapeHtml(b.Department||'-') + '</td><td>' + escapeHtml(b.Topic) + '</td><td>' + normalizeDate(b.Date) + '</td><td>' + escapeHtml(b.StartTime) + '-' + escapeHtml(b.EndTime) + '</td><td>' + statusBadge(b.Status) + '</td><td>' + noteCell + '</td><td><div class="action-btns">' + actions + '</div></td></tr>');
+      cards.insertAdjacentHTML('beforeend', '<div class="b-card"><div class="row"><span class="lbl">ผู้จอง</span><span>' + escapeHtml(b.Name) + '</span></div><div class="row"><span class="lbl">อีเมล</span><span>' + escapeHtml(b.Email) + '</span></div><div class="row"><span class="lbl">หน่วยงาน</span><span>' + escapeHtml(b.Department||'-') + '</span></div><div class="row"><span class="lbl">หัวข้อ</span><span>' + escapeHtml(b.Topic) + '</span></div><div class="row"><span class="lbl">วันที่/เวลา</span><span>' + normalizeDate(b.Date) + ' ' + escapeHtml(b.StartTime) + '-' + escapeHtml(b.EndTime) + '</span></div><div class="row"><span class="lbl">สถานะ</span><span>' + statusBadge(b.Status) + '</span></div><div class="row"><span class="lbl">หมายเหตุ</span><span>' + noteCell + '</span></div><div class="actions">' + actions + '</div></div>');
+    });
+    renderStats();
+    renderDeptStats();
+  }
+
+  function findBooking(id){ return state.bookings.find(function(b){ return String(b.BookingID) === String(id); }); }
+
+  document.addEventListener('click', function(e){
+    const btn = e.target.closest('[data-action]');
+    if(!btn) return;
+    const action = btn.getAttribute('data-action');
+    const id = btn.getAttribute('data-id');
+    const booking = findBooking(id);
+    if(!booking) return;
+    if(action === 'approve') openApproveModal(booking);
+    else if(action === 'reject') openReasonModal(booking);
+    else if(action === 'edit') openEditModal(booking);
+    else if(action === 'delete'){
+      openConfirmModal('คุณต้องการลบการจอง "' + booking.Topic + '" ใช่หรือไม่?', async function(){
+        const result = await api('delete', { requesterEmail: state.email, bookingId: booking.BookingID });
+        showToast(result.message, result.success ? 'success' : 'error');
+        closeModal(); loadBookings();
+      });
+    }
+  });
+
+  $('#filterBtns').addEventListener('click', function(e){
+    const b = e.target.closest('button');
+    if(!b) return;
+    $all('#filterBtns button').forEach(function(x){ x.classList.remove('active'); });
+    b.classList.add('active');
+    state.filter = b.getAttribute('data-f');
+    renderAdminBookings();
+  });
+  $('#searchInput').addEventListener('input', function(){ state.search = this.value; renderAdminBookings(); });
+
+  function closeModal(){ $('#modalRoot').innerHTML = ''; }
+
+  function openConfirmModal(message, onConfirm){
+    $('#modalRoot').innerHTML = '<div class="modal-overlay" id="confirmOverlay"><div class="modal-box"><h3>⚠️ ยืนยันการดำเนินการ</h3><p>' + escapeHtml(message) + '</p><div class="modal-actions"><button class="btn btn-outline" id="confirmCancel">ยกเลิก</button><button class="btn btn-danger" id="confirmOk">ยืนยัน</button></div></div></div>';
+    $('#confirmCancel').addEventListener('click', closeModal);
+    $('#confirmOk').addEventListener('click', onConfirm);
+    $('#confirmOverlay').addEventListener('click', function(e){ if(e.target.id==='confirmOverlay') closeModal(); });
+  }
+
+  function openApproveModal(booking){
+    $('#modalRoot').innerHTML = '<div class="modal-overlay" id="approveOverlay"><div class="modal-box"><h3>✅ อนุมัติการจอง</h3><p>หัวข้อ: <b>' + escapeHtml(booking.Topic) + '</b></p><div class="field"><label>ลิงก์ Zoom Meeting / หมายเหตุ</label><input type="text" id="zoomLinkInput" placeholder="https://zoom.us/j/... หรือข้อความ" value="' + escapeHtml(booking.Reason||'') + '"></div><p style="font-size:12px;color:#7c8aa0;">💌 ระบบจะส่งอีเมลแจ้งผลไปยังผู้จองอัตโนมัติ</p><div class="modal-actions"><button class="btn btn-outline" id="approveCancel">ยกเลิก</button><button class="btn btn-success" id="approveOk">ยืนยันอนุมัติ</button></div></div></div>';
+    $('#approveCancel').addEventListener('click', closeModal);
+    $('#approveOverlay').addEventListener('click', function(e){ if(e.target.id==='approveOverlay') closeModal(); });
+    $('#approveOk').addEventListener('click', async function(){
+      const link = $('#zoomLinkInput').value.trim();
+      const result = await api('updateStatus', { requesterEmail: state.email, bookingId: booking.BookingID, status:'อนุมัติ', reason: link });
+      showToast(result.message, result.success ? 'success' : 'error');
+      closeModal(); loadBookings();
+    });
+  }
+
+  function openReasonModal(booking){
+    $('#modalRoot').innerHTML = '<div class="modal-overlay" id="reasonOverlay"><div class="modal-box"><h3>❌ ไม่อนุมัติการจอง</h3><p>หัวข้อ: <b>' + escapeHtml(booking.Topic) + '</b></p><div class="field"><label>เหตุผล</label><textarea id="rejectReason" rows="3" placeholder="ระบุเหตุผล..."></textarea></div><p style="font-size:12px;color:#7c8aa0;">💌 ระบบจะส่งอีเมลแจ้งผลไปยังผู้จองอัตโนมัติ</p><div class="modal-actions"><button class="btn btn-outline" id="reasonCancel">ยกเลิก</button><button class="btn btn-danger" id="reasonOk">ยืนยันไม่อนุมัติ</button></div></div></div>';
+    $('#reasonCancel').addEventListener('click', closeModal);
+    $('#reasonOverlay').addEventListener('click', function(e){ if(e.target.id==='reasonOverlay') closeModal(); });
+    $('#reasonOk').addEventListener('click', async function(){
+      const reason = $('#rejectReason').value.trim() || 'ไม่ระบุเหตุผล';
+      const result = await api('updateStatus', { requesterEmail: state.email, bookingId: booking.BookingID, status:'ไม่อนุมัติ', reason: reason });
+      showToast(result.message, result.success ? 'success' : 'error');
+      closeModal(); loadBookings();
+    });
+  }
+
+  function bookingFormFields(b){
+    b = b || { Name:'', Email:'', Phone:'', Department:'', Topic:'', Date:'', StartTime:'', EndTime:'', Status:'รอตรวจสอบ', Reason:'' };
+    return '<div class="grid-form"><div class="field"><label>ชื่อผู้จอง</label><input type="text" id="mName" value="' + escapeHtml(b.Name) + '" required></div><div class="field"><label>อีเมล</label><input type="email" id="mEmail" value="' + escapeHtml(b.Email) + '" required></div><div class="field"><label>เบอร์โทร</label><input type="text" id="mPhone" value="' + escapeHtml(b.Phone) + '"></div><div class="field"><label>หน่วยงาน/สังกัด</label><input type="text" id="mDept" value="' + escapeHtml(b.Department) + '"></div></div><div class="field"><label>หัวข้อประชุม</label><input type="text" id="mTopic" value="' + escapeHtml(b.Topic) + '" required></div><div class="grid-form"><div class="field"><label>วันที่</label><input type="date" id="mDate" value="' + normalizeDate(b.Date) + '" required></div><div class="field"><label>เวลาเริ่ม</label><input type="time" id="mStart" value="' + escapeHtml(b.StartTime) + '" required></div><div class="field"><label>เวลาสิ้นสุด</label><input type="time" id="mEnd" value="' + escapeHtml(b.EndTime) + '" required></div></div><div class="grid-form"><div class="field"><label>สถานะ</label><select id="mStatus"><option value="รอตรวจสอบ" ' + (b.Status==='รอตรวจสอบ'?'selected':'') + '>รออนุมัติ</option><option value="อนุมัติ" ' + (b.Status==='อนุมัติ'?'selected':'') + '>อนุมัติแล้ว</option><option value="ไม่อนุมัติ" ' + (b.Status==='ไม่อนุมัติ'?'selected':'') + '>ไม่อนุมัติ</option></select></div><div class="field"><label>ลิงก์ Zoom / หมายเหตุ</label><input type="text" id="mReason" value="' + escapeHtml(b.Reason) + '"></div></div><div class="error-text" id="modalError"></div>';
+  }
+
+  function openEditModal(booking){
+    $('#modalRoot').innerHTML = '<div class="modal-overlay" id="editOverlay"><div class="modal-box"><h3>✏️ แก้ไขการจอง</h3><form id="editForm">' + bookingFormFields(booking) + '<div class="modal-actions"><button type="button" class="btn btn-outline" id="editCancel">ยกเลิก</button><button type="submit" class="btn btn-primary">บันทึกการแก้ไข</button></div></form></div></div>';
+    $('#editCancel').addEventListener('click', closeModal);
+    $('#editOverlay').addEventListener('click', function(e){ if(e.target.id==='editOverlay') closeModal(); });
+    $('#editForm').addEventListener('submit', async function(e){
+      e.preventDefault();
+      const start = $('#mStart').value, end = $('#mEnd').value;
+      if(toMinutes(start) >= toMinutes(end)){ $('#modalError').textContent = 'เวลาสิ้นสุดต้องมากกว่าเวลาเริ่ม'; return; }
+      const result = await api('updateBooking', {
+        requesterEmail: state.email, bookingId: booking.BookingID,
+        name: $('#mName').value.trim(), email: $('#mEmail').value.trim(), phone: $('#mPhone').value.trim(),
+        department: $('#mDept').value.trim(),
+        topic: $('#mTopic').value.trim(), date: $('#mDate').value, startTime: start, endTime: end,
+        status: $('#mStatus').value, reason: $('#mReason').value.trim()
+      });
+      showToast(result.message, result.success ? 'success' : 'error');
+      closeModal(); loadBookings();
+    });
+  }
+
+  function openAddModal(){
+    $('#modalRoot').innerHTML = '<div class="modal-overlay" id="addOverlay"><div class="modal-box"><h3>➕ เพิ่มการจองใหม่ (Admin)</h3><form id="addForm">' + bookingFormFields() + '<div class="modal-actions"><button type="button" class="btn btn-outline" id="addCancel">ยกเลิก</button><button type="submit" class="btn btn-primary">บันทึกการจอง</button></div></form></div></div>';
+    $('#addCancel').addEventListener('click', closeModal);
+    $('#addOverlay').addEventListener('click', function(e){ if(e.target.id==='addOverlay') closeModal(); });
+    $('#addForm').addEventListener('submit', async function(e){
+      e.preventDefault();
+      const start = $('#mStart').value, end = $('#mEnd').value;
+      if(toMinutes(start) >= toMinutes(end)){ $('#modalError').textContent = 'เวลาสิ้นสุดต้องมากกว่าเวลาเริ่ม'; return; }
+      const result = await api('create', {
+        requesterEmail: state.email,
+        name: $('#mName').value.trim(), email: $('#mEmail').value.trim(), phone: $('#mPhone').value.trim(),
+        department: $('#mDept').value.trim(),
+        topic: $('#mTopic').value.trim(), date: $('#mDate').value, startTime: start, endTime: end,
+        status: $('#mStatus').value, reason: $('#mReason').value.trim()
+      });
+      showToast(result.message, result.success ? 'success' : 'error');
+      if(result.success) closeModal();
+      loadBookings();
+    });
+  }
+  $('#addBookingBtn').addEventListener('click', openAddModal);
+
+  function exportToExcel(){
+    const list = getFilteredBookings();
+    if(list.length === 0){ showToast('ไม่มีข้อมูลให้ Export', 'error'); return; }
+
+    const headers = ['BookingID','ชื่อผู้จอง','อีเมล','เบอร์โทร','หน่วยงาน','หัวข้อ','วันที่','เวลาเริ่ม','เวลาสิ้นสุด','สถานะ','หมายเหตุ/ลิงก์','วันที่สร้าง'];
+    const statusMap = { 'รอตรวจสอบ':'รออนุมัติ', 'อนุมัติ':'อนุมัติแล้ว', 'ไม่อนุมัติ':'ไม่อนุมัติ' };
+
+    function csvEscape(val){
+      const s = String(val==null?'':val);
+      if(/[",\n]/.test(s)) return '"' + s.replace(/"/g,'""') + '"';
+      return s;
+    }
+
+    const rows = list.map(function(b){
+      return [
+        b.BookingID, b.Name, b.Email, b.Phone||'', b.Department||'', b.Topic,
+        normalizeDate(b.Date), b.StartTime, b.EndTime,
+        statusMap[b.Status] || b.Status, b.Reason||'', b.CreatedAt||''
+      ];
+    });
+
+    let csv = '\uFEFF';
+    csv += headers.map(csvEscape).join(',') + '\r\n';
+    rows.forEach(function(r){ csv += r.map(csvEscape).join(',') + '\r\n'; });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dateStr = new Date().toISOString().split('T')[0];
+    a.href = url;
+    a.download = 'รายงานการจองประชุม_' + dateStr + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('✅ Export รายงานสำเร็จ (' + list.length + ' รายการ)', 'success');
+  }
+  $('#exportBtn').addEventListener('click', exportToExcel);
+
+  async function loadAdminList(){
+    const result = await api('listAdmins', { requesterEmail: state.email });
+    if(result.success) renderAdminList(result.admins);
+  }
+
+  function renderAdminList(admins){
+    $('#adminListBody').innerHTML = admins.map(function(a){
+      return '<tr><td>' + escapeHtml(a.Email) + '</td><td>' + escapeHtml(a.Role) + '</td><td class="action-btns"><button class="btn btn-warning btn-sm" data-admin-action="edit" data-email="' + escapeHtml(a.Email) + '" data-role="' + escapeHtml(a.Role) + '">แก้ไข</button><button class="btn btn-danger btn-sm" data-admin-action="delete" data-email="' + escapeHtml(a.Email) + '">ลบ</button></td></tr>';
+    }).join('');
+  }
+
+  document.addEventListener('click', function(e){
+    const btn = e.target.closest('[data-admin-action]');
+    if(!btn) return;
+    const action = btn.getAttribute('data-admin-action');
+    const email = btn.getAttribute('data-email');
+    if(action === 'edit'){
+      const currentRole = btn.getAttribute('data-role');
+      const newPassword = prompt('รหัสผ่านใหม่ (เว้นว่างถ้าไม่เปลี่ยน):') || '';
+      const newRole = prompt('สิทธิ์ใหม่ (ผู้จัดการ / ผู้ดูแล):', currentRole) || '';
+      api('updateAdmin', { requesterEmail: state.email, targetEmail: email, newPassword: newPassword, newRole: newRole })
+        .then(function(r){ showToast(r.message, r.success ? 'success':'error'); loadAdminList(); });
+    } else if(action === 'delete'){
+      openConfirmModal('ยืนยันลบแอดมิน ' + email + '?', async function(){
+        const r = await api('deleteAdmin', { requesterEmail: state.email, targetEmail: email });
+        showToast(r.message, r.success ? 'success':'error');
+        closeModal(); loadAdminList();
+      });
+    }
+  });
+
+  $('#addAdminBtn').addEventListener('click', async function(){
+    const email = $('#newAdminEmail').value.trim();
+    const password = $('#newAdminPassword').value;
+    const role = $('#newAdminRole').value;
+    if(!email || !password) return showToast('กรุณากรอกอีเมลและรหัสผ่าน', 'error');
+    const result = await api('addAdmin', { requesterEmail: state.email, email: email, password: password, role: role });
+    showToast(result.message, result.success ? 'success' : 'error');
+    if(result.success){ $('#newAdminEmail').value=''; $('#newAdminPassword').value=''; loadAdminList(); }
+  });
+
+  /** ✅ ใหม่: ปุ่มทดสอบระบบส่งอีเมล — เชื่อม event listener ให้ถูกต้องแล้ว */
+  $('#testEmailBtn').addEventListener('click', async function(){
+    const email = $('#testEmailInput').value.trim();
+    const resultBox = $('#testEmailResult');
+    if(!email){ showToast('กรุณากรอกอีเมลที่ต้องการทดสอบ', 'error'); return; }
+    if(!/^\S+@\S+\.\S+$/.test(email)){ showToast('รูปแบบอีเมลไม่ถูกต้อง', 'error'); return; }
+    const btn = this;
+    btn.disabled = true; btn.textContent = 'กำลังส่ง...';
+    resultBox.textContent = '⏳ กำลังส่งอีเมลทดสอบ...';
+    resultBox.style.color = 'var(--muted)';
+    const result = await api('testEmail', { requesterEmail: state.email, targetEmail: email });
+    btn.disabled = false; btn.textContent = 'ส่งอีเมลทดสอบ';
+    resultBox.textContent = result.message;
+    resultBox.style.color = result.success ? 'var(--success)' : 'var(--danger)';
+    showToast(result.message, result.success ? 'success' : 'error');
+  });
+
+  document.addEventListener('DOMContentLoaded', checkConnection);
+})();
+</script>
+</body>
+</html>
